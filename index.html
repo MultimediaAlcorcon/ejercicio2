@@ -1,118 +1,139 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Ballroom is Freedom</title>
-
-  <!-- Fuente sans de sistema: rápida y legible.  
-       Si usas una display personalizada, simplemente añade @font-face o Google Fonts aquí -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frontier Within – WebGL Demo</title>
   <style>
-    /* 1. Reset muy ligero */
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    /* ---------- Reset & base ---------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Orbitron', sans-serif; background: radial-gradient(circle at 50% 30%, #0a0f18 0%, #03070c 100%); color: #cdd6f4; }
 
-    html,body{
-      height:100%;
-      font-family:Arial,Helvetica,sans-serif;
-      background:#fff;
-      overflow-x:hidden;           /* Evita scroll horizontal por el texto gigante */
-    }
+    /* ---------- Top‑right nav ---------- */
+    nav { position: fixed; top: 24px; right: 32px; z-index: 10; display: flex; gap: 24px; font-size: 14px; letter-spacing: 0.05em; }
+    nav a { text-decoration: none; color: #f8f8ff; padding: 8px 26px; border: 1px solid #2d3b46; border-radius: 32px; backdrop-filter: blur(4px); transition: background 0.3s ease; }
+    nav a:hover { background: rgba(53, 161, 255, 0.25); }
 
-    /* 2. Navegación superior */
-    .nav{
-      position:fixed;
-      top:0;left:0;width:100%;
-      padding:1rem 2rem;
-      display:flex;gap:2rem;
-      background:rgba(255,255,255,.9);   /* Fondo semitransparente para que no tape del todo el fondo */
-      font-weight:600;
-      text-transform:uppercase;
-      letter-spacing:.05em;
-      z-index:50;
-    }
-    .nav a{color:#000;text-decoration:none;}
-    .nav a:hover{opacity:.6;}
+    /* ---------- Side menu ---------- */
+    #sideMenu { position: fixed; top: 25%; left: 48px; z-index: 10; font-size: 14px; line-height: 1.6; }
+    #sideMenu h3 { margin-bottom: 18px; color: #a1c9ff; font-weight: 600; letter-spacing: 0.06em; }
+    #sideMenu ul { list-style: none; }
+    #sideMenu li { margin-bottom: 9px; }
+    #sideMenu a { text-decoration: none; color: #8899aa; transition: color 0.2s ease; }
+    #sideMenu a:hover { color: #ffffff; }
 
-    /* 3. Hero principal */
-    .hero{
-      height:100vh;
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;            /* “Ventana” que recorta texto y logo */
-    }
-
-    /* 4. Titular desmesurado */
-    .big-text{
-      position:absolute;
-      font-size:18vw;              /* Escala con el ancho de la ventana */
-      font-weight:900;
-      line-height:.8;
-      white-space:nowrap;
-      text-transform:uppercase;
-      pointer-events:none;         /* Para que no afecte a selección/clics */
-      user-select:none;
-    }
-
-    /* 5. Logo giratorio */
-    .logo-wrapper{
-      position:relative;
-      width:30vw;                  /* Flexible. Ajusta a tu gusto */
-      max-width:420px;             /* Límite superior para pantallas grandes */
-      aspect-ratio:1/1;            /* Mantiene proporción cuadrada */
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index:1;                   /* Debajo del texto (z-index más bajo) */
-    }
-    .logo{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      animation:spin 20s linear infinite;
-    }
-    @keyframes spin{
-      to{transform:rotate(360deg);}
-    }
-
-    /* 6. Leyenda inferior */
-    .caption{
-      position:absolute;
-      bottom:2rem;
-      width:100%;
-      text-align:center;
-      font-size:clamp(.9rem,2vw,1.2rem);
-      letter-spacing:.05em;
-    }
+    /* ---------- Canvas fills viewport ---------- */
+    canvas { width: 100%; height: 100%; display: block; }
   </style>
 </head>
-
 <body>
-  <!-- Barra de navegación -->
-  <nav class="nav">
-    <a href="#">Feed</a>
-    <a href="#">Audio</a>
-    <a href="#">Events</a>
-    <a href="#">Portraits</a>
-    <a href="#">Articles</a>
+  <!-- Floating navigation -->
+  <nav>
+    <a href="#work">WORK</a>
+    <a href="#contact">CONTACT</a>
   </nav>
 
-  <!-- Sección hero -->
-  <section class="hero">
-    <!-- Texto extragrande -->
-    <h1 class="big-text">BALLROOM&nbsp;IS&nbsp;FREEDOM</h1>
+  <!-- Side discovery menu -->
+  <aside id="sideMenu">
+    <h3>WHAT ARE YOU LOOKING FOR?</h3>
+    <ul>
+      <li><a href="#websites">WEBSITES</a></li>
+      <li><a href="#installations">INSTALLATIONS</a></li>
+      <li><a href="#xr">XR / VR / AI</a></li>
+      <li><a href="#multiplayer">MULTIPLAYER</a></li>
+      <li><a href="#games">GAMES</a></li>
+    </ul>
+  </aside>
 
-    <!-- Logo provisional -->
-    <div class="logo-wrapper">
-      <img class="logo"
-           src="https://via.placeholder.com/800x800/000000/FFFFFF?text=LOGO"
-           alt="Logo provisional">
-    </div>
+  <!-- Three.js playground -->
+  <canvas id="scene"></canvas>
 
-    <!-- Pie de página/leyenda -->
-    <p class="caption">
-      BALLROOM IS A BLACK QUEER CULTURAL OASIS FEARLESS
-    </p>
-  </section>
+  <!-- Three.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/controls/OrbitControls.js"></script>
+  <script>
+    /* ---------- Scene setup ---------- */
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 1.5, 10);
+
+    /* ---------- Lights ---------- */
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(5, 6, 5);
+    scene.add(dirLight);
+
+    /* ---------- Background particles ---------- */
+    const particleCount = 9000;
+    const positions = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3 + 0] = (Math.random() - 0.5) * 80;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 80;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 80;
+    }
+    const particlesGeometry = new THREE.BufferGeometry();
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particlesMaterial = new THREE.PointsMaterial({ size: 0.12, color: 0x7a7cff });
+    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particles);
+
+    /* ---------- Central abstract spine ---------- */
+    const spineGeometry = new THREE.TorusKnotGeometry(2.2, 0.5, 200, 16);
+    const spineMaterial = new THREE.MeshStandardMaterial({ color: 0x6d7cff, roughness: 0.45, metalness: 0.55, flatShading: true });
+    const spine = new THREE.Mesh(spineGeometry, spineMaterial);
+    scene.add(spine);
+
+    /* ---------- Dynamic floating screens ---------- */
+    const loader = new THREE.TextureLoader();
+    const screensData = [
+      { url: 'https://placehold.co/800x520/080b12/ffffff?text=FRONTIER+WITHIN' },
+      { url: 'https://placehold.co/800x520/071013/ffffff?text=SECRET+SKY' },
+      { url: 'https://placehold.co/800x520/00193a/ffffff?text=DISCOVER+YOUR+PATRONUS' },
+      { url: 'https://placehold.co/800x520/3d0000/ffffff?text=CHILE+20' }
+    ];
+
+    const screens = [];
+    screensData.forEach((data, i) => {
+      const tex = loader.load(data.url);
+      const geo = new THREE.PlaneGeometry(6, 4);
+      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(Math.sin(i * Math.PI / 2) * 8, (i - 1.5) * 2, Math.cos(i * Math.PI / 2) * -4);
+      mesh.rotation.y = i * Math.PI / 2;
+      screens.push(mesh);
+      scene.add(mesh);
+    });
+
+    /* ---------- Animation loop ---------- */
+    const clock = new THREE.Clock();
+    const animate = () => {
+      const elapsed = clock.getElapsedTime();
+      requestAnimationFrame(animate);
+
+      // subtle motions
+      spine.rotation.x += 0.004;
+      spine.rotation.y += 0.0025;
+      screens.forEach((s, idx) => {
+        s.rotation.z = Math.sin(elapsed * 0.5 + idx) * 0.06;
+      });
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    /* ---------- Responsive handling ---------- */
+    window.addEventListener('resize', () => {
+      const { innerWidth: w, innerHeight: h } = window;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+  </script>
 </body>
 </html>
